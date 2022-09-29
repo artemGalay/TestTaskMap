@@ -17,6 +17,32 @@ class ViewController: UIViewController {
         return mapView
     }()
 
+    private lazy var addAddressButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "addAddress"), for: .normal)
+        button.addTarget(self, action: #selector(addAddressButtonTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    private lazy var routeButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "route"), for: .normal)
+        button.addTarget(self, action: #selector(routeButtonTapped), for: .touchUpInside)
+        button.isHidden = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    private lazy var resetButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "reset"), for: .normal)
+        button.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
+        button.isHidden = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupHierarchy()
@@ -25,7 +51,9 @@ class ViewController: UIViewController {
 
     private func setupHierarchy() {
         view.addSubview(mapView)
-
+        mapView.addSubview(addAddressButton)
+        mapView.addSubview(routeButton)
+        mapView.addSubview(resetButton)
     }
 
     private func setupLayout() {
@@ -33,7 +61,34 @@ class ViewController: UIViewController {
             mapView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
             mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
             mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0)
+            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
+
+            addAddressButton.topAnchor.constraint(equalTo: mapView.topAnchor, constant: 50),
+            addAddressButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -10),
+            addAddressButton.heightAnchor.constraint(equalToConstant: 70),
+            addAddressButton.widthAnchor.constraint(equalToConstant: 100),
+
+            routeButton.leadingAnchor.constraint(equalTo: mapView.leadingAnchor, constant: 10),
+            routeButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -30),
+            routeButton.heightAnchor.constraint(equalToConstant: 90),
+            routeButton.widthAnchor.constraint(equalToConstant: 160),
+
+            resetButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -10),
+            resetButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -30),
+            resetButton.heightAnchor.constraint(equalToConstant: 80),
+            resetButton.widthAnchor.constraint(equalToConstant: 120)
         ])
+    }
+
+    @objc func addAddressButtonTapped() {
+
+    }
+
+    @objc func routeButtonTapped() {
+
+    }
+
+    @objc func resetButtonTapped() {
+
     }
 }
