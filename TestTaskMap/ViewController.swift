@@ -141,11 +141,40 @@ class ViewController: UIViewController {
         }
     }
 
+    private func createDirectionReqest(startCoordinate: CLLocationCoordinate2D, destinationCoordinate: CLLocationCoordinate2D) {
+        let startLocation = MKPlacemark(coordinate: startCoordinate)
+        let destinationLocation = MKPlacemark(coordinate: destinationCoordinate)
+
+        let reqest = MKDirections.Request()
+        reqest.source = MKMapItem(placemark: startLocation)
+        reqest.destination = MKMapItem(placemark: destinationLocation)
+        reqest.transportType = .walking
+        reqest.requestsAlternateRoutes = true
+
+        let diraction = MKDirections(request: reqest)
+        diraction.calculate { (responce, error) in
+            if let error = error {
+                print(error)
+                return
+            }
+            guard let responce = responce else {
+                self.alertError(title: "Error", message: "The route isn't available")
+                return
+            }
+
+            var minRoute = responce.routes[0]
+            for route in responce.routes {
+                minRoute = (route.distance < minRoute.distance) ? route: minRoute
+            }
+
+            self.mapView.addOverlay(minRoute.polyline)
+        }
+    }
+
     @objc func addAddressButtonTapped() {
         alertAddAddress(title: "Add", placeholder: "Enter the address") { [unowned self] (text) in
             setupPlacemark(addressPlace: text)
         }
-
     }
 
     @objc func routeButtonTapped() {
