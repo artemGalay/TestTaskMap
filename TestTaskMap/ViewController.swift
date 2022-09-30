@@ -43,6 +43,8 @@ class ViewController: UIViewController {
         return button
     }()
 
+    var annotationsArray = [MKPointAnnotation]()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupHierarchy()
@@ -112,9 +114,36 @@ class ViewController: UIViewController {
         present(alertController, animated: true, completion: nil)
     }
 
+    private func setupPlacemark(addressPlace: String) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString("Санкт-Петербург, Некрасова 20") { [unowned self] (placemarks, error) in
+            if let error = error {
+                print(error)
+                alertError(title: "Error", message: "The server is unavailable")
+                return
+            }
+
+            guard let placemarks = placemarks else { return }
+            let placemark = placemarks.first
+
+            let annotation = MKPointAnnotation()
+            annotation.title = "\(addressPlace)"
+            guard let placemaksLocation = placemark?.location else { return }
+            annotation.coordinate = placemaksLocation.coordinate
+
+            annotationsArray.append(annotation)
+
+            if annotationsArray.count > 2 {
+                routeButton.isHidden = false
+                resetButton.isHidden = false
+            }
+            mapView.showAnnotations(annotationsArray, animated: true)
+        }
+    }
+
     @objc func addAddressButtonTapped() {
-        alertAddAddress(title: "Add", placeholder: "Enter the address") { (text) in
-            print(text)
+        alertAddAddress(title: "Add", placeholder: "Enter the address") { [unowned self] (text) in
+            setupPlacemark(addressPlace: text)
         }
 
     }
