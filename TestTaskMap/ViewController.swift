@@ -9,7 +9,7 @@ import UIKit
 import MapKit
 import CoreLocation
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController {
 
     private lazy var mapView: MKMapView = {
         let mapView = MKMapView()
@@ -49,6 +49,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         setupHierarchy()
         setupLayout()
+        mapView.delegate = self
     }
 
     private func setupHierarchy() {
@@ -82,6 +83,27 @@ class ViewController: UIViewController {
         ])
     }
 
+    @objc func addAddressButtonTapped() {
+        alertAddAddress(title: "Add", placeholder: "Enter the address") { [self] (text) in
+            setupPlacemark(addressPlace: text)
+        }
+    }
+
+    @objc func routeButtonTapped() {
+        for index in 0...annotationsArray.count - 2 {
+            createDirectionReqest(startCoordinate: annotationsArray[index].coordinate, destinationCoordinate: annotationsArray[index + 1].coordinate)
+        }
+        mapView.showAnnotations(annotationsArray, animated: true)
+    }
+
+    @objc func resetButtonTapped() {
+        mapView.removeOverlays(mapView.overlays)
+        mapView.removeAnnotations(mapView.annotations)
+        annotationsArray = [MKPointAnnotation]()
+        routeButton.isHidden = true
+        resetButton.isHidden = true
+    }
+
     private func alertAddAddress(title: String, placeholder: String, completionHandler: @escaping (String) -> Void) {
 
         let alertController = UIAlertController(title: title, message: nil, preferredStyle: .alert)
@@ -91,13 +113,11 @@ class ViewController: UIViewController {
             guard let text = textFieldText?.text else { return }
             completionHandler(text)
         }
-
         alertController.addTextField { (textField) in
             textField.placeholder = placeholder
         }
 
-        let alertCancel = UIAlertAction(title: "Cancel", style: .default) { (_) in
-        }
+        let alertCancel = UIAlertAction(title: "Cancel", style: .default) { (_) in }
 
         alertController.addAction(alertOk)
         alertController.addAction(alertCancel)
@@ -112,33 +132,6 @@ class ViewController: UIViewController {
         alertController.addAction(alertOk)
 
         present(alertController, animated: true, completion: nil)
-    }
-
-    private func setupPlacemark(addressPlace: String) {
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString("Санкт-Петербург, Некрасова 20") { [unowned self] (placemarks, error) in
-            if let error = error {
-                print(error)
-                alertError(title: "Error", message: "The server is unavailable")
-                return
-            }
-
-            guard let placemarks = placemarks else { return }
-            let placemark = placemarks.first
-
-            let annotation = MKPointAnnotation()
-            annotation.title = "\(addressPlace)"
-            guard let placemaksLocation = placemark?.location else { return }
-            annotation.coordinate = placemaksLocation.coordinate
-
-            annotationsArray.append(annotation)
-
-            if annotationsArray.count > 2 {
-                routeButton.isHidden = false
-                resetButton.isHidden = false
-            }
-            mapView.showAnnotations(annotationsArray, animated: true)
-        }
     }
 
     private func createDirectionReqest(startCoordinate: CLLocationCoordinate2D, destinationCoordinate: CLLocationCoordinate2D) {
@@ -171,17 +164,41 @@ class ViewController: UIViewController {
         }
     }
 
-    @objc func addAddressButtonTapped() {
-        alertAddAddress(title: "Add", placeholder: "Enter the address") { [unowned self] (text) in
-            setupPlacemark(addressPlace: text)
+    private func setupPlacemark(addressPlace: String) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString("Санкт-Петербург, Некрасова 20") { [self] (placemarks, error) in
+
+            if let error = error {
+                print(error)
+                alertError(title: "Error", message: "The server is unavailable")
+                return
+            }
+
+            guard let placemarks = placemarks else { return }
+            let placemark = placemarks.first
+
+            let annotation = MKPointAnnotation()
+            annotation.title = "\(addressPlace)"
+            guard let placemarkLocation = placemark?.location else { return }
+            annotation.coordinate = placemarkLocation.coordinate
+
+            annotationsArray.append(annotation)
+
+            if annotationsArray.count > 2 {
+                routeButton.isHidden = false
+                resetButton.isHidden = false
+            }
+            mapView.showAnnotations(annotationsArray, animated: true)
         }
     }
+}
 
-    @objc func routeButtonTapped() {
+extension ViewController: MKMapViewDelegate {
 
-    }
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
 
-    @objc func resetButtonTapped() {
-
+        let renderer = MKPolylineRenderer(overlay: overlay as! MKPolyline)
+        renderer.strokeColor = .red
+        return renderer
     }
 }
